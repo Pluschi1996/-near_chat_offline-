@@ -1,0 +1,24 @@
+workflows:
+  android-build:
+    name: NearChat Offline APK Build
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    environment:
+      flutter: stable
+    scripts:
+      - name: 1. Fehlenden Android-Ordner erzeugen
+        script: |
+          # Wir sichern unsere main.dart
+          mv lib/main.dart ./main.dart.bak
+          # Wir zwingen Flutter, das Android-Gerüst zu bauen
+          flutter create --platforms=android --org com.nearchat .
+          # Wir setzen unsere main.dart wieder ein
+          mv ./main.dart.bak lib/main.dart
+      - name: 2. Abhängigkeiten installieren
+        script: |
+          flutter pub get
+      - name: 3. APK kompilieren
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
