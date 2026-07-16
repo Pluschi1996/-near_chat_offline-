@@ -1,0 +1,15 @@
+name: near_chat_offline
+description: Ein offline P2P Messenger für Android und iOS über lokales Netzwerk.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.5
+
+flutter:
+  uses-material-design: true
