@@ -299,14 +299,14 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignmen.spaceBetween
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         "Deine IP: $_localIP",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2)
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: _isConnected ? Colors.green : Colors.orange,
                           borderRadius: BorderRadius.circular(12),
