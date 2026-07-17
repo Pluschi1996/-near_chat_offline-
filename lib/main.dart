@@ -599,3 +599,8 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                               color: const Color(0x
+ // ==========================================
+// DUMMY ZEILEN UM DEN COMPILER-CACHE ZU BEHEBEN
+// 1234567890 1234567890 1234567890 1234567890
+// ==========================================
+                                                 
