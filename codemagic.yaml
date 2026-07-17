@@ -6,14 +6,19 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: 1. Fehlenden Android-Ordner erzeugen
+      - name: 1. Fehlenden Android-Ordner erzeugen & Berechtigungen freischalten
         script: |
-          # Wir sichern unsere main.dart
+          # 1. Unsere main.dart in Sicherheit bringen
           mv lib/main.dart ./main.dart.bak
-          # Wir zwingen Flutter, das Android-Gerüst zu bauen
+          
+          # 2. Android-Gerüst generieren
           flutter create --platforms=android --org com.nearchat .
-          # Wir setzen unsere main.dart wieder ein
+          
+          # 3. Unsere main.dart wieder einsetzen
           mv ./main.dart.bak lib/main.dart
+          
+          # 4. Der Geheimtrick: Wir schleusen die Internet-Erlaubnis in die Android-Konfiguration ein
+          perl -pi -e 's|<application|<uses-permission android:name="android.permission.INTERNET" />\n    <application|' android/app/src/main/AndroidManifest.xml
       - name: 2. Abhängigkeiten installieren
         script: |
           flutter pub get
@@ -22,3 +27,4 @@ workflows:
           flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
+      
