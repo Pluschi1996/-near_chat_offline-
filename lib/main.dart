@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:ui'; // Für den Weichzeichner (Frosted Glass Effect)
-import 'package:flutter/material';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const NearChatApp());
@@ -598,7 +598,229 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const Color(0x
+                              color: const Color(0xFF1E1F28),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.white10),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  "Mit Partner verbinden",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  "Trage die IP-Adresse deines Partners hier ein.",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: _ipController,
+                                  keyboardType: TextInputType.values[0],
+                                  style: const TextStyle(fontSize: 15),
+                                  decoration: InputDecoration(
+                                    hintText: "Z.B. 192.168.1.135",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: const Color(0xFF0F1015),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _connectToPeer(_ipController.text.trim()),
+                                    icon: const Icon(Icons.link),
+                                    label: const Text("Verbindung herstellen"),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Colors.white24),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              // Chatbereich, wenn verbunden
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(20),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          final isMe = msg['isMe'] as bool;
+                          final time = msg['time'] as DateTime;
+
+                          final bubbleBorderRadius = BorderRadius.only(
+                            topLeft: const Radius.circular(20),
+                            topRight: const Radius.circular(20),
+                            bottomLeft: Radius.circular(isMe ? 20 : 4),
+                            bottomRight: Radius.circular(isMe ? 4 : 20),
+                          );
+
+                          return Align(
+                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              constraints: BoxConstraints(
+                                maxWidth: MediaQuery.of(context).size.width * 0.75,
+                              ),
+                              child: ClipRRect(
+                                borderRadius: bubbleBorderRadius,
+                                child: BackdropFilter(
+                                  // 12.0 ist der perfekte Glas-Blur-Effekt
+                                  filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: bubbleBorderRadius,
+                                      // Feine Lichtkante: Simuliert glänzenden Glasschnitt
+                                      border: Border.all(
+                                        color: isMe 
+                                            ? const Color(0x4DFFFFFF) // 30% Weiß
+                                            : const Color(0x1AFFFFFF), // 10% Weiß
+                                        width: 1.5,
+                                      ),
+                                      // Farbverlauf mit angepasster Transparenz (Alpha-Kanal)
+                                      gradient: isMe
+                                          ? const LinearGradient(
+                                              colors: [
+                                                Color(0x806366F1), // 50% Indigo-Glas
+                                                Color(0x804F46E5),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            )
+                                          : const LinearGradient(
+                                              colors: [
+                                                Color(0x1FFFFFFF), // 12% Rauchglas
+                                                Color(0x14FFFFFF), // 8% Rauchglas
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          msg['text'],
+                                          style: TextStyle(
+                                            color: isMe ? Colors.white : const Color(0xFFE2E8F0),
+                                            fontSize: 15,
+                                            height: 1.3,
+                                            // Text-Schatten für exzellente Lesbarkeit auf Glas
+                                            shadows: const [
+                                              Shadow(
+                                                offset: Offset(0, 1),
+                                                blurRadius: 2.0,
+                                                color: Color(0x66000000),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
+                                          style: TextStyle(
+                                            color: isMe ? Colors.white70 : Colors.grey[400],
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Stilvolle Eingabeleiste im Floating-Stil
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      color: const Color(0xFF0F1015),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E1F28),
+                                borderRadius: BorderRadius.circular(28),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _messageController,
+                                      textCapitalization: TextCapitalization.sentences,
+                                      style: const TextStyle(color: Colors.white),
+                                      decoration: const InputDecoration(
+                                        hintText: "Nachricht...",
+                                        hintStyle: TextStyle(color: Colors.grey),
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          IconButton.filled(
+                            onPressed: _sendMessage,
+                            icon: const Icon(Icons.send_rounded),
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFF6366F1),
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(48, 48),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              _stopServer();
+                              _disconnectClient();
+                            },
+                            icon: const Icon(Icons.power_settings_new_rounded, color: Colors.redAccent),
+                            tooltip: "Trennen",
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
  // ==========================================
 // DUMMY ZEILEN UM DEN COMPILER-CACHE ZU BEHEBEN
 // 1234567890 1234567890 1234567890 1234567890
