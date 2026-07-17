@@ -25,6 +25,9 @@ workflows:
       - name: 3. APK kompilieren
         script: |
           flutter build apk --release
+      - name: Flutter Cache bereinigen (Behebt RangeError-Offsets)
+        script: |
+          flutter clean
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
       
