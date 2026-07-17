@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
+import 'dart:ui'; // <--- NEU: Das hier importiert die Weichzeichner-Werkzeuge
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,30 +14,192 @@ class NearChatApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NearChat Offline',
+      title: 'NearChat',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.light,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F1015),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF6366F1), // Modernes Indigo
+          secondary: Color(0xFFEC4899), // Pinker Akzent
+          surface: Color(0xFF1E1F28), // Dunkles Schiefer
+          error: Color(0xFFEF4444),
         ),
       ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
-      ),
-      themeMode: ThemeMode.system,
-      home: const ChatHomeScreen(),
+      home: const ProfileSetupScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
+// NEU: Profil-Auswahl beim Start der App
+class ProfileSetupScreen extends StatefulWidget {
+  const ProfileSetupScreen({super.key});
+
+  @override
+  State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+}
+
+class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  String _selectedAvatar = "🐱"; // Standard-Avatar
+
+  // Eine Auswahl an coolen Emojis für das Profil
+  final List<String> _avatars = ["🐱", "🏎️", "🤖", "🚀", "👾", "🦊", "🎧", "⚡"];
+
+  void _saveProfile() {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Bitte gib einen Benutzernamen ein!"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    // Weiterleitung zum Hauptbildschirm mit Übergabe der Profildaten
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => ChatHomeScreen(
+          userName: name,
+          avatar: _selectedAvatar,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo / Icon-Bereich
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                      ),
+                    ),
+                    child: const Icon(Icons.bolt, size: 60, color: Colors.white),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "NearChat",
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                  ),
+                  const Text(
+                    "Offline. Sicher. Direkt.",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Avatar-Vorschau & Auswahl
+                  Text(
+                    _selectedAvatar,
+                    style: const TextStyle(fontSize: 70),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 60,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      itemCount: _avatars.length,
+                      itemBuilder: (context, index) {
+                        final avatar = _avatars[index];
+                        final isSelected = avatar == _selectedAvatar;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedAvatar = avatar;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSelected ? theme.colorScheme.primary.withOpacity(0.3) : Colors.transparent,
+                              border: Border.all(
+                                color: isSelected ? theme.colorScheme.primary : Colors.grey.withOpacity(0.3),
+                                width: 2,
+                              ),
+                            ),
+                            child: Text(avatar, style: const TextStyle(fontSize: 24)),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Namenseingabe
+                  TextField(
+                    controller: _nameController,
+                    maxLength: 15,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: "Dein Name",
+                      prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      counterText: "",
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Start-Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        "Los geht's",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class ChatHomeScreen extends StatefulWidget {
-  const ChatHomeScreen({super.key});
+  final String userName;
+  final String avatar;
+
+  const ChatHomeScreen({
+    super.key,
+    required this.userName,
+    required this.avatar,
+  });
 
   @override
   State<ChatHomeScreen> createState() => _ChatHomeScreenState();
@@ -48,13 +211,17 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
   ServerSocket? _serverSocket;
   Socket? _clientSocket;
   final List<Socket> _connectedClients = [];
-  final int _port = 4040; // Standard-Port für die Verbindung
+  final int _port = 4040;
+
+  // Partner-Informationen
+  String _partnerName = "Partner";
+  String _partnerAvatar = "👤";
 
   // UI-Status
   bool _isHosting = false;
   bool _isConnected = false;
-  String _connectionStatus = "Getrennt";
-  
+  String _connectionStatus = "Bereit zum Koppeln";
+
   // Chat-Daten
   final List<Map<String, dynamic>> _messages = [];
   final TextEditingController _messageController = TextEditingController();
@@ -77,22 +244,20 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
     super.dispose();
   }
 
-  // Ermittelt die IP-Adresse des Geräts im lokalen Netzwerk
   Future<void> _fetchLocalIP() async {
     try {
       final interfaces = await NetworkInterface.list(
         includeLoopback: false,
         type: InternetAddressType.IPv4,
       );
-      
+
       if (interfaces.isNotEmpty) {
         setState(() {
-          // Nimmt die erste gültige IP-Adresse aus dem lokalen Netzwerk
           _localIP = interfaces.first.addresses.first.address;
         });
       } else {
         setState(() {
-          _localIP = "Kein WLAN/Hotspot aktiv";
+          _localIP = "Kein WLAN aktiv";
         });
       }
     } catch (e) {
@@ -102,7 +267,7 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
     }
   }
 
-  // STARTET DEN SERVER (Gerät 1 wartet auf Verbindung)
+  // STARTET DEN SERVER
   Future<void> _startServer() async {
     if (_isHosting) return;
 
@@ -110,7 +275,7 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
       _serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, _port);
       setState(() {
         _isHosting = true;
-        _connectionStatus = "Warte auf Partner (Server läuft auf Port $_port)...";
+        _connectionStatus = "Warte auf Partner...";
       });
 
       _serverSocket!.listen((Socket client) {
@@ -121,7 +286,6 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
     }
   }
 
-  // Stoppt den Server
   void _stopServer() {
     _serverSocket?.close();
     for (var client in _connectedClients) {
@@ -131,27 +295,28 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
     setState(() {
       _isHosting = false;
       _isConnected = false;
-      _connectionStatus = "Getrennt";
+      _connectionStatus = "Bereit zum Koppeln";
     });
   }
 
-  // Verarbeitet eingehende Verbindungen auf dem Server
   void _handleIncomingConnection(Socket client) {
     if (_connectedClients.isNotEmpty) {
-      // Nur 1-zu-1 Verbindung für diesen Messenger erlauben
       client.write(utf8.encode(jsonEncode({'type': 'system', 'message': 'Besetzt'})));
       client.close();
       return;
     }
 
     _connectedClients.add(client);
-    _setupSocketListeners(client, "Partner");
+    _setupSocketListeners(client);
+
+    // Profil direkt nach Verbindungsaufbau an den neuen Partner senden
+    _sendProfileHandshake(client);
   }
 
-  // VERBINDET SICH ALS CLIENT (Gerät 2 verbindet sich mit Gerät 1)
+  // VERBINDET SICH ALS CLIENT
   Future<void> _connectToPeer(String targetIP) async {
     if (targetIP.isEmpty) {
-      _showErrorSnackBar("Bitte eine gültige IP-Adresse eingeben!");
+      _showErrorSnackBar("Bitte eine gültige IP eingeben!");
       return;
     }
 
@@ -161,30 +326,39 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
 
     try {
       _clientSocket = await Socket.connect(targetIP, _port, timeout: const Duration(seconds: 10));
-      _setupSocketListeners(_clientSocket!, "Server");
+      _setupSocketListeners(_clientSocket!);
+      _sendProfileHandshake(_clientSocket!);
     } catch (e) {
       setState(() {
-        _connectionStatus = "Verbindungsfehler";
+        _connectionStatus = "Verbindung fehlgeschlagen";
       });
       _showErrorSnackBar("Verbindung fehlgeschlagen: $e");
     }
   }
 
-  // Trennt die Client-Verbindung
   void _disconnectClient() {
     _clientSocket?.destroy();
     _clientSocket = null;
     setState(() {
       _isConnected = false;
-      _connectionStatus = "Getrennt";
+      _connectionStatus = "Bereit zum Koppeln";
     });
   }
 
-  // Konfiguriert die Datenströme für gesendete/empfangene Nachrichten
-  void _setupSocketListeners(Socket socket, String peerType) {
+  // Sendet den eigenen Namen & Avatar an den Partner
+  void _sendProfileHandshake(Socket socket) {
+    final handshake = jsonEncode({
+      'type': 'handshake',
+      'name': widget.userName,
+      'avatar': widget.avatar,
+    });
+    socket.write(handshake);
+  }
+
+  void _setupSocketListeners(Socket socket) {
     setState(() {
       _isConnected = true;
-      _connectionStatus = "Verbunden mit Partner";
+      _connectionStatus = "Verbunden";
     });
 
     socket.listen(
@@ -192,30 +366,31 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
         final messageString = utf8.decode(data);
         try {
           final Map<String, dynamic> parsedJson = jsonDecode(messageString);
-          if (parsedJson['type'] == 'msg') {
+          
+          if (parsedJson['type'] == 'handshake') {
+            setState(() {
+              _partnerName = parsedJson['name'] ?? "Partner";
+              _partnerAvatar = parsedJson['avatar'] ?? "👤";
+            });
+          } else if (parsedJson['type'] == 'msg') {
             _addMessage(parsedJson['text'], false);
           }
         } catch (e) {
-          // Fallback für reinen Text
+          // Fallback
           _addMessage(messageString, false);
         }
       },
-      onError: (error) {
-        _handleDisconnect();
-      },
-      onDone: () {
-        _handleDisconnect();
-      },
+      onError: (error) => _handleDisconnect(),
+      onDone: () => _handleDisconnect(),
     );
   }
 
   void _handleDisconnect() {
-    _showErrorSnackBar("Verbindung verloren.");
+    _showErrorSnackBar("Verbindung beendet.");
     _stopServer();
     _disconnectClient();
   }
 
-  // Nachricht lokal hinzufügen und via Socket senden
   void _sendMessage() {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
@@ -227,7 +402,6 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
 
     final encodedPayload = utf8.encode(messagePayload);
 
-    // Entweder an den verbundenen Client (wenn wir Host sind) oder an den Server (wenn wir Client sind) senden
     if (_isHosting && _connectedClients.isNotEmpty) {
       _connectedClients.first.add(encodedPayload);
       _addMessage(text, true);
@@ -250,7 +424,6 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
         'time': DateTime.now(),
       });
     });
-    // Nach unten scrollen
     Timer(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -267,6 +440,8 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -274,14 +449,40 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NearChat Offline', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: theme.colorScheme.primaryContainer,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Text(_isConnected ? _partnerAvatar : widget.avatar, style: const TextStyle(fontSize: 20)),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isConnected ? _partnerName : "NearChat Offline",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _connectionStatus,
+                  style: TextStyle(fontSize: 11, color: _isConnected ? Colors.greenAccent : Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF0F1015),
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.grey),
             tooltip: "IP aktualisieren",
             onPressed: _fetchLocalIP,
           ),
@@ -290,59 +491,116 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Netzwerk-Status-Bar
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              color: theme.colorScheme.secondaryContainer,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Deine IP: $_localIP",
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _isConnected ? Colors.green : Colors.orange,
-                          borderRadius: BorderRadius.circular(12),
+            // Moderne Netzwerk-Status-Bar (Einfache schwebende Infobox)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1F28),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Deine IP: $_localIP",
+                      style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _isConnected ? Colors.greenAccent : Colors.orangeAccent,
+                          ),
                         ),
-                        child: Text(
+                        const SizedBox(width: 6),
+                        Text(
                           _isConnected ? "Verbunden" : "Bereit",
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: _isConnected ? Colors.greenAccent : Colors.orangeAccent,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Status: $_connectionStatus",
-                    style: TextStyle(fontSize: 12, color: theme.colorScheme.onSecondaryContainer.withOpacity(0.8)),
-                  ),
-                ],
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
 
-            // Setup Screen (falls nicht verbunden)
+            // Wenn noch nicht verbunden: Kopplungs-Zentrale
             if (!_isConnected)
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Center(
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.wifi_off_rounded,
-                            size: 80,
-                            color: theme.colorScheme.primary.withOpacity(0.6),
+                          const Icon(
+                            Icons.sensors,
+                            size: 70,
+                            color: Color(0xFF6366F1),
                           ),
                           const SizedBox(height: 24),
+
+                          // Option A: Hosten
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1F28),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: _isHosting ? const Color(0xFF6366F1).withOpacity(0.5) : Colors.white10,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  "Als Host warten",
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  "Dein Partner muss sich mit deiner IP-Adresse verbinden.",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _isHosting ? _stopServer : _startServer,
+                                    icon: Icon(_isHosting ? Icons.stop_rounded : Icons.play_arrow_rounded),
+                                    label: Text(_isHosting ? "Hosting beenden" : "Kopplung starten"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: _isHosting ? Colors.redAccent : const Color(0xFF6366F1),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Option B: Verbinden
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const C                   const SizedBox(height: 24),
                           
                           // HOST-Option
                           Card(
@@ -437,90 +695,87 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
                           final isMe = msg['isMe'] as bool;
                           final time = msg['time'] as DateTime;
                           
+                                                    final bubbleBorderRadius = BorderRadius.only(
+                            topLeft: const Radius.circular(20),
+                            topRight: const Radius.circular(20),
+                            bottomLeft: Radius.circular(isMe ? 20 : 4),
+                            bottomRight: Radius.circular(isMe ? 4 : 20),
+                          );
+
                           return Align(
                             alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                             child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: isMe 
-                                  ? theme.colorScheme.primary 
-                                  : theme.colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: const Radius.circular(16),
-                                  topRight: const Radius.circular(16),
-                                  bottomLeft: Radius.circular(isMe ? 16 : 0),
-                                  bottomRight: Radius.circular(isMe ? 0 : 16),
-                                ),
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              constraints: BoxConstraints(
+                                maxWidth: MediaQuery.of(context).size.width * 0.75,
                               ),
-                              child: Column(
-                                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    msg['text'],
-                                    style: TextStyle(
-                                      color: isMe ? Colors.white : theme.colorScheme.onSurface,
-                                      fontSize: 15,
+                              child: ClipRRect(
+                                borderRadius: bubbleBorderRadius,
+                                child: BackdropFilter(
+                                  // Bestimmt, wie stark das "Glas" den Hintergrund verschleiert (12.0 ist der Sweet Spot)
+                                  filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: bubbleBorderRadius,
+                                      // Feine Lichtkante: Simuliert die glänzende Schnittkante von Glas
+                                      border: Border.all(
+                                        color: isMe 
+                                            ? const Color(0x4DFFFFFF) // 30% weißer Rand für dich
+                                            : const Color(0x1AFFFFFF), // 10% weißer Rand für den Partner
+                                        width: 1.5,
+                                      ),
+                                      // Halbtransparente Farben für den Glas-Look
+                                      gradient: isMe
+                                          ? const LinearGradient(
+                                              colors: [
+                                                Color(0x806366F1), // Indigo-Glas mit 50% Deckkraft
+                                                Color(0x804F46E5), // Dunkles Indigo-Glas mit 50% Deckkraft
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            )
+                                          : const LinearGradient(
+                                              colors: [
+                                                Color(0x1FFFFFFF), // Rauchglas mit 12% Deckkraft
+                                                Color(0x14FFFFFF), // Rauchglas mit 8% Deckkraft
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          msg['text'],
+                                          style: TextStyle(
+                                            color: isMe ? Colors.white : const Color(0xFFE2E8F0),
+                                            fontSize: 15,
+                                            height: 1.3,
+                                            // Subtiler Text-Schatten, damit man den Text auch vor hellem Hintergrund-Inhalt perfekt lesen kann
+                                            shadows: const [
+                                              Shadow(
+                                                offset: Offset(0, 1),
+                                                blurRadius: 2.0,
+                                                color: Color(0x66000000),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
+                                          style: TextStyle(
+                                            color: isMe ? Colors.white70 : Colors.grey[400],
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
-                                    style: TextStyle(
-                                      color: isMe ? Colors.white60 : Colors.grey,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           );
-                        },
-                      ),
-                    ),
-                    
-                    // Eingabeleiste unten
-                    Container(
-                      padding: const EdgeInsets.all(8.0),
-                      color: theme.colorScheme.surface,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _messageController,
-                              textCapitalization: TextCapitalization.sentences,
-                              decoration: const InputDecoration(
-                                hintText: "Offline-Nachricht senden...",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(24)),
-                                ),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton.filled(
-                            onPressed: _sendMessage,
-                            icon: const Icon(Icons.send),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              _stopServer();
-                              _disconnectClient();
-                            },
-                            icon: const Icon(Icons.power_settings_new, color: Colors.red),
-                            tooltip: "Verbindung trennen",
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
