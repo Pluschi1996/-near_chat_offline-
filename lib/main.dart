@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
-import 'dart:ui'; // <--- NEU: Das hier importiert die Weichzeichner-Werkzeuge
-import 'package:flutter/material.dart';
+import 'dart:ui'; // Für den Weichzeichner (Frosted Glass Effect)
+import 'package:flutter/material';
 
 void main() {
   runApp(const NearChatApp());
@@ -32,7 +32,7 @@ class NearChatApp extends StatelessWidget {
   }
 }
 
-// NEU: Profil-Auswahl beim Start der App
+// Profil-Auswahl beim Start der App
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
 
@@ -83,7 +83,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo / Icon-Bereich
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -376,7 +375,6 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
             _addMessage(parsedJson['text'], false);
           }
         } catch (e) {
-          // Fallback
           _addMessage(messageString, false);
         }
       },
@@ -600,182 +598,4 @@ class _ChatHomeScreenState extends State<ChatHomeScreen> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const C                   const SizedBox(height: 24),
-                          
-                          // HOST-Option
-                          Card(
-                            elevation: _isHosting ? 4 : 1,
-                            color: _isHosting ? theme.colorScheme.primaryContainer.withOpacity(0.5) : null,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                children: [
-                                  const Text(
-                                    "Option A: Als Host starten",
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    "Wähle dies auf Gerät 1. Dein Partner muss sich mit deiner IP verbinden.",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ElevatedButton.icon(
-                                    onPressed: _isHosting ? _stopServer : _startServer,
-                                    icon: Icon(_isHosting ? Icons.stop : Icons.play_arrow),
-                                    label: Text(_isHosting ? "Hosting beenden" : "Warten auf Partner"),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: _isHosting ? Colors.redAccent : null,
-                                      foregroundColor: _isHosting ? Colors.white : null,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 16),
-                          
-                          // CONNECT-Option
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                children: [
-                                  const Text(
-                                    "Option B: Mit Partner verbinden",
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    "Gib die IP-Adresse des anderen Geräts ein (Gerät 1 muss Host sein).",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  TextField(
-                                    controller: _ipController,
-                                    keyboardType: TextInputType.values[0], // Keyboard mit Punkten für IP
-                                    decoration: const InputDecoration(
-                                      hintText: "Z.B. 192.168.43.1",
-                                      border: OutlineInputBorder(),
-                                      isDense: true,
-                                      labelText: "IP-Adresse des Partners",
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ElevatedButton.icon(
-                                    onPressed: () => _connectToPeer(_ipController.text.trim()),
-                                    icon: const Icon(Icons.swap_horiz_rounded),
-                                    label: const Text("Verbindung herstellen"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else
-              // Chatbereich, wenn verbunden
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final msg = _messages[index];
-                          final isMe = msg['isMe'] as bool;
-                          final time = msg['time'] as DateTime;
-                          
-                                                    final bubbleBorderRadius = BorderRadius.only(
-                            topLeft: const Radius.circular(20),
-                            topRight: const Radius.circular(20),
-                            bottomLeft: Radius.circular(isMe ? 20 : 4),
-                            bottomRight: Radius.circular(isMe ? 4 : 20),
-                          );
-
-                          return Align(
-                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.75,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: bubbleBorderRadius,
-                                child: BackdropFilter(
-                                  // Bestimmt, wie stark das "Glas" den Hintergrund verschleiert (12.0 ist der Sweet Spot)
-                                  filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                    decoration: BoxDecoration(
-                                      borderRadius: bubbleBorderRadius,
-                                      // Feine Lichtkante: Simuliert die glänzende Schnittkante von Glas
-                                      border: Border.all(
-                                        color: isMe 
-                                            ? const Color(0x4DFFFFFF) // 30% weißer Rand für dich
-                                            : const Color(0x1AFFFFFF), // 10% weißer Rand für den Partner
-                                        width: 1.5,
-                                      ),
-                                      // Halbtransparente Farben für den Glas-Look
-                                      gradient: isMe
-                                          ? const LinearGradient(
-                                              colors: [
-                                                Color(0x806366F1), // Indigo-Glas mit 50% Deckkraft
-                                                Color(0x804F46E5), // Dunkles Indigo-Glas mit 50% Deckkraft
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            )
-                                          : const LinearGradient(
-                                              colors: [
-                                                Color(0x1FFFFFFF), // Rauchglas mit 12% Deckkraft
-                                                Color(0x14FFFFFF), // Rauchglas mit 8% Deckkraft
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          msg['text'],
-                                          style: TextStyle(
-                                            color: isMe ? Colors.white : const Color(0xFFE2E8F0),
-                                            fontSize: 15,
-                                            height: 1.3,
-                                            // Subtiler Text-Schatten, damit man den Text auch vor hellem Hintergrund-Inhalt perfekt lesen kann
-                                            shadows: const [
-                                              Shadow(
-                                                offset: Offset(0, 1),
-                                                blurRadius: 2.0,
-                                                color: Color(0x66000000),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
-                                          style: TextStyle(
-                                            color: isMe ? Colors.white70 : Colors.grey[400],
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
+                              color: const Color(0x
