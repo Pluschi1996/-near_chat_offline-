@@ -28,6 +28,7 @@ workflows:
       - name: Flutter Cache bereinigen (Behebt RangeError-Offsets)
         script: |
           flutter clean
-    artifacts:
-      - build/app/outputs/flutter-apk/app-release.apk
+        artifacts:
+              build/app/outputs/flutter-apk/*.apk
+
       
